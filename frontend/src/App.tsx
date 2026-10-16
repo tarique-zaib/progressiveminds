@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+﻿import { FormEvent, useEffect, useState } from "react";
 import AssessmentManagement from "./components/AssessmentManagement";
 
 const API_BASE = "http://localhost:5080";
@@ -696,11 +696,8 @@ export default function App() {
     return (
       <main className="app-shell">
         <header className="topbar">
-          <a className="brand" href="#">
-            <span className="brand-mark">P</span>
-            <span>
-              Progressive<span className="brand-accent">Minds</span>
-            </span>
+          <a className="brand" href="#" aria-label="Progressive Minds home">
+            <img className="brand-logo" src="https://progressiveminds.in/images/logo.png" alt="Progressive Minds" />
           </a>
           <div className="topbar-actions">
             <span className="user-label">
@@ -842,7 +839,7 @@ export default function App() {
                       })
                     }
                   >
-                    <option value="Asia/Kolkata">India — Asia/Kolkata</option>
+                    <option value="Asia/Kolkata">India - Asia/Kolkata</option>
                     <option value="UTC">UTC</option>
                   </select>
                 </label>
@@ -1051,7 +1048,7 @@ export default function App() {
                   </label>
                   <label>Course *
                     <select required value={studentForm.courseId} onChange={(e) => setStudentForm({ ...studentForm, courseId: e.target.value })}>
-                      {courses.map((course) => <option key={course.id} value={course.id}>{course.code} — {course.name}</option>)}
+                      {courses.map((course) => <option key={course.id} value={course.id}>{course.code} - {course.name}</option>)}
                     </select>
                   </label>
                   {editingStudentId && <label className="checkbox-label"><input type="checkbox" checked={studentForm.isActive} onChange={(e) => setStudentForm({ ...studentForm, isActive: e.target.checked })} /> Active student</label>}
@@ -1151,7 +1148,7 @@ export default function App() {
                 >
                   {courses.length === 0 && <option value="">No courses available</option>}
                   {courses.map((course) => (
-                    <option key={course.id} value={course.id}>{course.code} — {course.name}</option>
+                    <option key={course.id} value={course.id}>{course.code} - {course.name}</option>
                   ))}
                 </select>
               </label>
@@ -1256,7 +1253,7 @@ export default function App() {
               <label>Course *
                 <select value={selectedCourseId} onChange={e => setSelectedCourseId(e.target.value)} required>
                   {courses.length === 0 && <option value="">Create a course first</option>}
-                  {courses.map(c => <option key={c.id} value={c.id}>{c.code} — {c.name}</option>)}
+                  {courses.map(c => <option key={c.id} value={c.id}>{c.code} - {c.name}</option>)}
                 </select>
               </label>
               <label>Attendance date *
@@ -1459,11 +1456,8 @@ export default function App() {
   return (
     <main className="login-layout">
       <section className="hero-panel">
-        <div className="brand brand-large">
-          <span className="brand-mark">P</span>
-          <span>
-            Progressive<span className="brand-accent">Minds</span>
-          </span>
+        <div className="brand brand-large" aria-label="Progressive Minds">
+          <img className="brand-logo brand-logo-large" src="https://progressiveminds.in/images/logo.png" alt="Progressive Minds" />
         </div>
         <div className="hero-copy">
           <div className="eyebrow">COACHING INSTITUTE MANAGEMENT</div>
@@ -1523,3 +1517,5 @@ export default function App() {
     </main>
   );
 }
+
+

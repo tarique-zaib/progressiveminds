@@ -246,3 +246,7 @@
     min-width: 0;
   }
 }
+
+
+/* Premium ProgressiveMinds assessment styling */
+.assessment-panel{overflow:hidden}.assessment-subject-row,.assessment-list-item{border-color:#eee3cf;border-radius:13px;background:#fffdf8}.assessment-list-item{padding:14px;transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease}.assessment-list-item:hover:not(:disabled){border-color:#d7b64f;transform:translateY(-1px)}.assessment-list-item-active{border-color:#d6a21c;box-shadow:0 0 0 2px rgba(244,197,66,.22);background:#fff9e7}.assessment-type-chip{background:#fff0b8;color:#775200}.assessment-stats span{border:1px solid #f0e5cf;background:#fffaf0;border-radius:11px}.assessment-table-wrap{border-color:#eee3d0;border-radius:13px}.assessment-table th{background:#fff7df}.assessment-table th,.assessment-table td{border-bottom-color:#eee7d9}.assessment-footnote{line-height:1.7}
