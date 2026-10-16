@@ -584,7 +584,7 @@ export default function AssessmentManagement({
                           onChange={() => toggleSubject(subject.id)}
                         />{" "}
                         <span>
-                          {subject.code} â€” {subject.name}
+                          {subject.code} - {subject.name}
                         </span>
                       </label>
                       {checked && (
@@ -692,8 +692,8 @@ export default function AssessmentManagement({
                   </span>
                   <strong>{assessment.title}</strong>
                   <small>
-                    {assessment.assessmentDate} Â· {assessment.sectionCount}{" "}
-                    subject(s) Â· {assessment.totalMaxMarks} total marks
+                    {assessment.assessmentDate} | {assessment.sectionCount}{" "}
+                    subject(s) | {assessment.totalMaxMarks} total marks
                   </small>
                 </button>
               ))}
@@ -716,7 +716,7 @@ export default function AssessmentManagement({
                   </span>
                   <h3>{selectedAssessment.title}</h3>
                   <p>
-                    {selectedAssessment.assessmentDate} Â· Maximum total{" "}
+                    {selectedAssessment.assessmentDate} | Maximum total{" "}
                     {selectedAssessment.totalMaxMarks} marks
                   </p>
                 </div>
@@ -730,7 +730,7 @@ export default function AssessmentManagement({
                   >
                     {selectedAssessment.sections.map((section) => (
                       <option key={section.id} value={section.id}>
-                        {section.subjectCode} â€” {section.subjectName} (
+                        {section.subjectCode} - {section.subjectName} (
                         {section.maxMarks} marks)
                       </option>
                     ))}
@@ -746,7 +746,7 @@ export default function AssessmentManagement({
                   <span>
                     <strong>
                       {averagePercentage === null
-                        ? "â€”"
+                        ? "-"
                         : `${averagePercentage.toFixed(1)}%`}
                     </strong>{" "}
                     current average
@@ -767,7 +767,7 @@ export default function AssessmentManagement({
                         <tr>
                           <th>Admission no.</th>
                           <th>Student</th>
-                          <th>Marks / {selectedSection?.maxMarks ?? "â€”"}</th>
+                          <th>Marks / {selectedSection?.maxMarks ?? "-"}</th>
                           <th>Remarks</th>
                         </tr>
                       </thead>
