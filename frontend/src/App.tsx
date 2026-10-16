@@ -1,5 +1,7 @@
-﻿import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import AssessmentManagement from "./components/AssessmentManagement";
+import StudentAnalytics from "./components/StudentAnalytics";
+import "./admin-navigation.css";
 
 const API_BASE = "http://localhost:5080";
 
@@ -81,7 +83,23 @@ type AttendanceRecord = {
 type AttendanceDraft = { status: AttendanceStatus; notes: string };
 
 
+type AdminPage = "dashboard" | "institute" | "students" | "courses" | "subjects" | "attendance" | "attendanceReports" | "analytics" | "assessments" | "diagnostics";
+
+const ADMIN_MENU: { id: AdminPage; label: string; icon: string; group: string }[] = [
+  { id: "dashboard", label: "Dashboard", icon: "⌂", group: "OVERVIEW" },
+  { id: "institute", label: "Institute & Sessions", icon: "▦", group: "ACADEMICS" },
+  { id: "courses", label: "Courses", icon: "▣", group: "ACADEMICS" },
+  { id: "subjects", label: "Subjects", icon: "▤", group: "ACADEMICS" },
+  { id: "students", label: "Student Management", icon: "♙", group: "ACADEMICS" },
+  { id: "attendance", label: "Attendance Management", icon: "✓", group: "ATTENDANCE" },
+  { id: "attendanceReports", label: "Attendance Reports", icon: "▥", group: "ATTENDANCE" },
+  { id: "assessments", label: "Exams & Assessments", icon: "✎", group: "PERFORMANCE" },
+  { id: "analytics", label: "Student Analytics", icon: "↗", group: "PERFORMANCE" },
+  { id: "diagnostics", label: "System Diagnostics", icon: "⚙", group: "SYSTEM" },
+];
+
 export default function App() {
+  const [activePage, setActivePage] = useState<AdminPage>("dashboard");
   const [email, setEmail] = useState("admin@progressiveminds.local");
   const [password, setPassword] = useState("");
   const [token, setToken] = useState<string | null>(() =>
@@ -708,14 +726,33 @@ export default function App() {
             </button>
           </div>
         </header>
-        <section className="dashboard">
-          <div className="eyebrow">PHASE 1 · INSTITUTE MANAGEMENT</div>
-          <h1>Institute setup</h1>
-          <p className="lead">
-            Manage your institute profile and academic sessions. Each institute
-            is visible only to its authorized members.
-          </p>
-          <div className="status-grid">
+        <div className="admin-layout">
+          <aside className="admin-sidebar">
+            <div className="sidebar-brand"><span className="sidebar-brand-mark">P</span><span><strong>ProgressiveMinds</strong><small>INSTITUTE ADMIN</small></span></div>
+            {(["OVERVIEW", "ACADEMICS", "ATTENDANCE", "PERFORMANCE", "SYSTEM"] as const).map((group) => (
+              <div className="menu-group" key={group}>
+                <div className="menu-group-label">{group}</div>
+                {ADMIN_MENU.filter((item) => item.group === group).map((item) => (
+                  <button key={item.id} type="button" className={`menu-item ${activePage === item.id ? "active" : ""}`} onClick={() => setActivePage(item.id)}>
+                    <span className="menu-icon" aria-hidden="true">{item.icon}</span><span>{item.label}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+            <div className="sidebar-footer"><span className="sidebar-status-dot" /> API connected locally</div>
+          </aside>
+          <section className="dashboard admin-content">
+            {activePage === "dashboard" && <>
+              <div className="eyebrow">INSTITUTE OVERVIEW</div>
+              <h1>Dashboard</h1>
+              <p className="lead">Welcome back, {user.firstName}. Choose a module from the menu to manage your institute.</p>
+              <div className="overview-cards">
+                <button type="button" className="overview-card" onClick={() => setActivePage("students")}><span className="overview-card-icon">♙</span><span><strong>Students</strong><small>Admissions and student profiles</small></span><b>{students.length}</b></button>
+                <button type="button" className="overview-card" onClick={() => setActivePage("courses")}><span className="overview-card-icon">▣</span><span><strong>Courses</strong><small>Active academic programmes</small></span><b>{courses.length}</b></button>
+                <button type="button" className="overview-card" onClick={() => setActivePage("subjects")}><span className="overview-card-icon">▤</span><span><strong>Subjects</strong><small>Subjects for selected course</small></span><b>{subjects.length}</b></button>
+                <button type="button" className="overview-card" onClick={() => setActivePage("institute")}><span className="overview-card-icon">▦</span><span><strong>Academic sessions</strong><small>Sessions configured</small></span><b>{sessions.length}</b></button>
+              </div>
+              <div className="status-grid">
             <article className="status-card">
               <span className="status-dot" />
               <div>
@@ -737,7 +774,12 @@ export default function App() {
                 <p>Domain events use the outbox</p>
               </div>
             </article>
-          </div>
+              </div>
+            </>}
+            {activePage === "institute" && <>
+          <div className="eyebrow">ACADEMIC CONFIGURATION</div>
+          <h1>Institute & Sessions</h1>
+          <p className="lead">Manage institute profiles and academic sessions. Each institute is visible only to its authorized members.</p>
           <section className="panel section-panel">
             <div>
               <div className="eyebrow">INSTITUTES</div>
@@ -1000,6 +1042,9 @@ export default function App() {
               )}
             </section>
           </div>
+            </>}
+            {activePage === "students" && <>
+          <div className="eyebrow">ACADEMIC OPERATIONS</div><h1>Student Management</h1><p className="lead">Admissions, student profiles, guardian contacts and course enrolments.</p>
           <section className="panel courses-panel">
             <div className="section-heading">
               <div>
@@ -1085,6 +1130,9 @@ export default function App() {
               </div>
             )}
           </section>
+            </>}
+            {activePage === "courses" && <>
+          <div className="eyebrow">ACADEMIC CATALOGUE</div><h1>Courses</h1><p className="lead">Create and maintain the courses offered by your institute.</p>
           <section className="panel courses-panel">
             <div className="section-heading">
               <div>
@@ -1109,6 +1157,9 @@ export default function App() {
             </form>}
             {!selectedInstituteId ? <div className="empty-state">Choose an institute to manage courses.</div> : courses.length === 0 ? <div className="empty-state"><h3>No courses yet</h3><p>Create your first course, such as IIT-JEE, NEET or Foundation.</p></div> : <div className="session-list">{courses.map(course => <article className="session-item" key={course.id}><div className="session-icon">▣</div><div className="session-copy"><strong>{course.name}</strong><small>{course.code} · {course.durationMonths} months{course.description ? ` · ${course.description}` : ""}</small></div><span className={course.isActive ? "current-badge" : "status-badge"}>{course.isActive ? "Active" : "Inactive"}</span><button className="button button-ghost" type="button" onClick={() => beginEditCourse(course)}>Edit</button></article>)}</div>}
           </section>
+            </>}
+            {activePage === "subjects" && <>
+          <div className="eyebrow">ACADEMIC CATALOGUE</div><h1>Subjects</h1><p className="lead">Manage subjects by course.</p>
           <section className="panel courses-panel">
             <div className="section-heading">
               <div>
@@ -1229,7 +1280,9 @@ export default function App() {
               </div>
             )}
           </section>
-
+            </>}
+            {activePage === "attendance" && <>
+          <div className="eyebrow">DAILY REGISTER</div><h1>Attendance Management</h1><p className="lead">Mark attendance for active students enrolled in the selected course.</p>
           <section className="panel courses-panel">
             <div className="section-heading">
               <div>
@@ -1310,7 +1363,9 @@ export default function App() {
               </>
             )}
           </section>
-
+            </>}
+            {activePage === "attendanceReports" && <>
+          <div className="eyebrow">REPORTING & INSIGHTS</div><h1>Attendance Reports</h1><p className="lead">Review daily totals, monthly summaries and student-wise attendance percentages.</p>
           <section className="panel courses-panel">
             <div className="section-heading">
               <div>
@@ -1412,7 +1467,22 @@ export default function App() {
               </>
             )}
           </section>
-          <AssessmentManagement
+            </>}
+            {activePage === "analytics" && <>
+              <div className="eyebrow">PERFORMANCE</div><h1>Student Analytics</h1><p className="lead">Review student performance and progress.</p>
+              <StudentAnalytics
+            token={token}
+            instituteId={selectedInstituteId}
+            selectedCourseId={selectedCourseId}
+            selectedSessionId={attendanceSessionId}
+            courses={courses}
+            sessions={sessions}
+            students={students}
+          />
+            </>}
+            {activePage === "assessments" && <>
+              <div className="eyebrow">EXAMINATIONS</div><h1>Exams & Assessments</h1><p className="lead">Configure assessments, sections and student marks.</p>
+              <AssessmentManagement
             token={token}
             instituteId={selectedInstituteId}
             selectedCourseId={selectedCourseId}
@@ -1424,7 +1494,9 @@ export default function App() {
             onCourseChange={setSelectedCourseId}
             onSessionChange={setAttendanceSessionId}
           />
-
+            </>}
+            {activePage === "diagnostics" && <>
+          <div className="eyebrow">SYSTEM</div><h1>System Diagnostics</h1><p className="lead">Verify the event pipeline and application connectivity.</p>
           <section className="panel event-panel">
             <div>
               <div className="eyebrow">DIAGNOSTICS</div>
@@ -1442,13 +1514,15 @@ export default function App() {
               Publish test event
             </button>
           </section>
+            </>}
           {message && <div className="notice notice-success">{message}</div>}
           {error && <div className="notice notice-error">{error}</div>}
           <footer>
             Signed in as {user.email} · {user.roles.join(", ") || "User"} ·
             ProgressiveMinds
           </footer>
-        </section>
+          </section>
+        </div>
       </main>
     );
   }
@@ -1517,5 +1591,6 @@ export default function App() {
     </main>
   );
 }
+
 
 
