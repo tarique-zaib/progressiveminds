@@ -1,0 +1,32 @@
+﻿# Dependencies and build output
+**/node_modules/
+**/dist/
+**/bin/
+**/obj/
+.vite/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/secrets.json
+
+# IDE and operating system
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Generated TypeScript build information
+**/*.tsbuildinfo
+
+# Database backups
+backups/
+*.dump
+*.backup
