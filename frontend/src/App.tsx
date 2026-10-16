@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+﻿import { FormEvent, useEffect, useState } from "react";
 import AssessmentManagement from "./components/AssessmentManagement";
 import StudentAnalytics from "./components/StudentAnalytics";
 import "./admin-navigation.css";
@@ -728,7 +728,7 @@ export default function App() {
         </header>
         <div className="admin-layout">
           <aside className="admin-sidebar">
-            <div className="sidebar-brand"><span className="sidebar-brand-mark">P</span><span><strong>ProgressiveMinds</strong><small>INSTITUTE ADMIN</small></span></div>
+            <div className="sidebar-brand"><span className="sidebar-brand-mark">PM</span><span><strong>Progressive Minds</strong><small>INSTITUTE ADMIN</small></span></div>
             {(["OVERVIEW", "ACADEMICS", "ATTENDANCE", "PERFORMANCE", "SYSTEM"] as const).map((group) => (
               <div className="menu-group" key={group}>
                 <div className="menu-group-label">{group}</div>
