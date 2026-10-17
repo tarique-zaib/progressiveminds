@@ -508,6 +508,61 @@ namespace ProgressiveMinds.Api.Migrations
                     b.ToTable("Courses");
                 });
 
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.FeePayment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<Guid>("InstituteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Method")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("PaidAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReceiptNumber")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("RecordedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReferenceNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("StudentFeeId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReceiptNumber")
+                        .IsUnique();
+
+                    b.HasIndex("StudentFeeId");
+
+                    b.HasIndex("InstituteId", "StudentFeeId", "PaidAtUtc");
+
+                    b.ToTable("FeePayments", t =>
+                        {
+                            t.HasCheckConstraint("CK_FeePayments_Amount_Positive", "\"Amount\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("ProgressiveMinds.Api.Models.Institute", b =>
                 {
                     b.Property<Guid>("Id")
@@ -683,6 +738,57 @@ namespace ProgressiveMinds.Api.Migrations
                     b.HasIndex("InstituteId", "FullName");
 
                     b.ToTable("Students");
+                });
+
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.StudentFee", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AcademicSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("DueDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("InstituteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(160)
+                        .HasColumnType("character varying(160)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AcademicSessionId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("InstituteId", "StudentId", "AcademicSessionId", "DueDate");
+
+                    b.ToTable("StudentFees", t =>
+                        {
+                            t.HasCheckConstraint("CK_StudentFees_Amount_Positive", "\"Amount\" > 0");
+                        });
                 });
 
             modelBuilder.Entity("ProgressiveMinds.Api.Models.Subject", b =>
@@ -886,6 +992,21 @@ namespace ProgressiveMinds.Api.Migrations
                     b.Navigation("Institute");
                 });
 
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.FeePayment", b =>
+                {
+                    b.HasOne("ProgressiveMinds.Api.Models.Institute", null)
+                        .WithMany()
+                        .HasForeignKey("InstituteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.StudentFee", null)
+                        .WithMany()
+                        .HasForeignKey("StudentFeeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("ProgressiveMinds.Api.Models.InstituteMembership", b =>
                 {
                     b.HasOne("ProgressiveMinds.Api.Models.Institute", "Institute")
@@ -912,6 +1033,27 @@ namespace ProgressiveMinds.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.StudentFee", b =>
+                {
+                    b.HasOne("ProgressiveMinds.Api.Models.AcademicSession", null)
+                        .WithMany()
+                        .HasForeignKey("AcademicSessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.Institute", null)
+                        .WithMany()
+                        .HasForeignKey("InstituteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ProgressiveMinds.Api.Models.Subject", b =>

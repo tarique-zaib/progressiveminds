@@ -1,6 +1,7 @@
 ﻿import { FormEvent, useEffect, useState } from "react";
 import AssessmentManagement from "./components/AssessmentManagement";
 import StudentAnalytics from "./components/StudentAnalytics";
+import FeeManagement from "./components/FeeManagement";
 import "./admin-navigation.css";
 
 const API_BASE = "http://localhost:5080";
@@ -83,7 +84,7 @@ type AttendanceRecord = {
 type AttendanceDraft = { status: AttendanceStatus; notes: string };
 
 
-type AdminPage = "dashboard" | "institute" | "students" | "courses" | "subjects" | "attendance" | "attendanceReports" | "analytics" | "assessments" | "diagnostics";
+type AdminPage = "dashboard" | "institute" | "students" | "courses" | "subjects" | "attendance" | "attendanceReports" | "analytics" | "assessments" | "fees" | "diagnostics";
 
 const ADMIN_MENU: { id: AdminPage; label: string; icon: string; group: string }[] = [
   { id: "dashboard", label: "Dashboard", icon: "⌂", group: "OVERVIEW" },
@@ -94,6 +95,7 @@ const ADMIN_MENU: { id: AdminPage; label: string; icon: string; group: string }[
   { id: "attendance", label: "Attendance Management", icon: "✓", group: "ATTENDANCE" },
   { id: "attendanceReports", label: "Attendance Reports", icon: "▥", group: "ATTENDANCE" },
   { id: "assessments", label: "Exams & Assessments", icon: "✎", group: "PERFORMANCE" },
+  { id: "fees", label: "Fee Management", icon: "₹", group: "FINANCE" },
   { id: "analytics", label: "Student Analytics", icon: "↗", group: "PERFORMANCE" },
   { id: "diagnostics", label: "System Diagnostics", icon: "⚙", group: "SYSTEM" },
 ];
@@ -728,8 +730,8 @@ export default function App() {
         </header>
         <div className="admin-layout">
           <aside className="admin-sidebar">
-            <div className="sidebar-brand"><span className="sidebar-brand-mark">PM</span><span><strong>Progressive Minds</strong><small>INSTITUTE ADMIN</small></span></div>
-            {(["OVERVIEW", "ACADEMICS", "ATTENDANCE", "PERFORMANCE", "SYSTEM"] as const).map((group) => (
+            <div className="sidebar-brand"><span className="sidebar-brand-mark">P</span><span><strong>ProgressiveMinds</strong><small>INSTITUTE ADMIN</small></span></div>
+            {(["OVERVIEW", "ACADEMICS", "ATTENDANCE", "PERFORMANCE", "FINANCE", "SYSTEM"] as const).map((group) => (
               <div className="menu-group" key={group}>
                 <div className="menu-group-label">{group}</div>
                 {ADMIN_MENU.filter((item) => item.group === group).map((item) => (
@@ -1494,6 +1496,10 @@ export default function App() {
             onCourseChange={setSelectedCourseId}
             onSessionChange={setAttendanceSessionId}
           />
+            </>}
+            {activePage === "fees" && <>
+              <div className="eyebrow">FINANCE</div><h1>Fee Management</h1><p className="lead">Track student fee obligations, partial payments, outstanding balances and printable receipts.</p>
+              <FeeManagement token={token} instituteId={selectedInstituteId} selectedSessionId={attendanceSessionId || sessions.find(s => s.isCurrent)?.id || ""} students={students} sessions={sessions} />
             </>}
             {activePage === "diagnostics" && <>
           <div className="eyebrow">SYSTEM</div><h1>System Diagnostics</h1><p className="lead">Verify the event pipeline and application connectivity.</p>

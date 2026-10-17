@@ -21,6 +21,8 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
     public DbSet<Assessment> Assessments => Set<Assessment>();
     public DbSet<AssessmentSection> AssessmentSections => Set<AssessmentSection>();
     public DbSet<AssessmentMark> AssessmentMarks => Set<AssessmentMark>();
+    public DbSet<StudentFee> StudentFees => Set<StudentFee>();
+    public DbSet<FeePayment> FeePayments => Set<FeePayment>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -195,6 +197,34 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
                 .WithMany()
                 .HasForeignKey(x => x.SubjectId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<StudentFee>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Title).HasMaxLength(160).IsRequired();
+            entity.Property(x => x.Amount).HasPrecision(12, 2);
+            entity.Property(x => x.Notes).HasMaxLength(500);
+            entity.HasIndex(x => new { x.InstituteId, x.StudentId, x.AcademicSessionId, x.DueDate });
+            entity.HasOne<Student>().WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Institute>().WithMany().HasForeignKey(x => x.InstituteId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<AcademicSession>().WithMany().HasForeignKey(x => x.AcademicSessionId).OnDelete(DeleteBehavior.Restrict);
+            entity.ToTable(table => table.HasCheckConstraint("CK_StudentFees_Amount_Positive", "\"Amount\" > 0"));
+        });
+
+        builder.Entity<FeePayment>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Amount).HasPrecision(12, 2);
+            entity.Property(x => x.Method).HasMaxLength(30).IsRequired();
+            entity.Property(x => x.ReferenceNumber).HasMaxLength(100);
+            entity.Property(x => x.ReceiptNumber).HasMaxLength(40).IsRequired();
+            entity.Property(x => x.Notes).HasMaxLength(500);
+            entity.HasIndex(x => x.ReceiptNumber).IsUnique();
+            entity.HasIndex(x => new { x.InstituteId, x.StudentFeeId, x.PaidAtUtc });
+            entity.HasOne<StudentFee>().WithMany().HasForeignKey(x => x.StudentFeeId).OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne<Institute>().WithMany().HasForeignKey(x => x.InstituteId).OnDelete(DeleteBehavior.Restrict);
+            entity.ToTable(table => table.HasCheckConstraint("CK_FeePayments_Amount_Positive", "\"Amount\" > 0"));
         });
 
         builder.Entity<AssessmentMark>(entity =>
