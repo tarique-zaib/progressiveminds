@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using ProgressiveMinds.Api.Models;
@@ -23,6 +23,7 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
     public DbSet<AssessmentMark> AssessmentMarks => Set<AssessmentMark>();
     public DbSet<StudentFee> StudentFees => Set<StudentFee>();
     public DbSet<FeePayment> FeePayments => Set<FeePayment>();
+    public DbSet<ParentStudentLink> ParentStudentLinks => Set<ParentStudentLink>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -225,6 +226,17 @@ public sealed class AppDbContext : IdentityDbContext<AppUser, IdentityRole<Guid>
             entity.HasOne<StudentFee>().WithMany().HasForeignKey(x => x.StudentFeeId).OnDelete(DeleteBehavior.Restrict);
             entity.HasOne<Institute>().WithMany().HasForeignKey(x => x.InstituteId).OnDelete(DeleteBehavior.Restrict);
             entity.ToTable(table => table.HasCheckConstraint("CK_FeePayments_Amount_Positive", "\"Amount\" > 0"));
+        });
+
+        builder.Entity<ParentStudentLink>(entity =>
+        {
+            entity.HasKey(x => x.Id);
+            entity.HasIndex(x => new { x.ParentUserId, x.StudentId }).IsUnique();
+            entity.HasIndex(x => new { x.InstituteId, x.ParentUserId, x.IsActive });
+            entity.HasOne<Student>().WithMany().HasForeignKey(x => x.StudentId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<Institute>().WithMany().HasForeignKey(x => x.InstituteId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.ParentUserId).OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne<AppUser>().WithMany().HasForeignKey(x => x.LinkedByUserId).OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<AssessmentMark>(entity =>

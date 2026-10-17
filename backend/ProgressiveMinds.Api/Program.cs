@@ -12,7 +12,26 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Description = "Paste your JWT access token here."
+    });
+
+    options.AddSecurityRequirement(document => new Microsoft.OpenApi.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.OpenApiSecuritySchemeReference("Bearer", document),
+            new List<string>()
+        }
+    });
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Set ConnectionStrings:DefaultConnection using User Secrets.");
@@ -86,6 +105,12 @@ builder.Services.AddHostedService<KafkaEventConsumerService>();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
@@ -97,54 +122,135 @@ await SeedIdentityAsync(app);
 
 app.Run();
 
+
 static async Task SeedIdentityAsync(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
+
     var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("IdentitySeeder");
+    var logger = services.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("IdentitySeeder");
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
     var userManager = services.GetRequiredService<UserManager<AppUser>>();
     var configuration = services.GetRequiredService<IConfiguration>();
 
-    var email = configuration["BootstrapAdmin:Email"];
-    var password = configuration["BootstrapAdmin:Password"];
-
-    if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+    // Ensure both roles exist, regardless of whether bootstrap accounts are configured.
+    foreach (var roleName in new[] { "Admin", "Parent" })
     {
-        logger.LogWarning("Bootstrap admin was not seeded because BootstrapAdmin:Email or BootstrapAdmin:Password is missing.");
-        return;
-    }
-
-    const string adminRole = "Admin";
-    if (!await roleManager.RoleExistsAsync(adminRole))
-    {
-        var roleResult = await roleManager.CreateAsync(new IdentityRole<Guid>(adminRole));
-        if (!roleResult.Succeeded)
-            throw new InvalidOperationException("Could not create Admin role: " + string.Join("; ", roleResult.Errors.Select(e => e.Description)));
-    }
-
-    var user = await userManager.FindByEmailAsync(email);
-    if (user is null)
-    {
-        user = new AppUser
+        if (!await roleManager.RoleExistsAsync(roleName))
         {
-            UserName = email,
-            Email = email,
-            EmailConfirmed = true,
-            FirstName = configuration["BootstrapAdmin:FirstName"] ?? "Progressive",
-            LastName = configuration["BootstrapAdmin:LastName"] ?? "Admin",
-            CreatedAtUtc = DateTime.UtcNow
-        };
+            var roleResult = await roleManager.CreateAsync(
+                new IdentityRole<Guid>(roleName));
 
-        var createResult = await userManager.CreateAsync(user, password);
-        if (!createResult.Succeeded)
-            throw new InvalidOperationException("Could not create bootstrap admin: " + string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            if (!roleResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Could not create {roleName} role: " +
+                    string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+            }
+
+            logger.LogInformation("Created Identity role {RoleName}.", roleName);
+        }
     }
 
-    if (!await userManager.IsInRoleAsync(user, adminRole))
+    // Preserve the existing bootstrap Admin behavior.
+    var adminEmail = configuration["BootstrapAdmin:Email"];
+    var adminPassword = configuration["BootstrapAdmin:Password"];
+
+    if (!string.IsNullOrWhiteSpace(adminEmail) &&
+        !string.IsNullOrWhiteSpace(adminPassword))
     {
-        var roleResult = await userManager.AddToRoleAsync(user, adminRole);
-        if (!roleResult.Succeeded)
-            throw new InvalidOperationException("Could not assign Admin role: " + string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+        var admin = await userManager.FindByEmailAsync(adminEmail);
+
+        if (admin is null)
+        {
+            admin = new AppUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                EmailConfirmed = true,
+                FirstName = configuration["BootstrapAdmin:FirstName"] ?? "Progressive",
+                LastName = configuration["BootstrapAdmin:LastName"] ?? "Admin",
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            var createResult = await userManager.CreateAsync(admin, adminPassword);
+
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Could not create bootstrap admin: " +
+                    string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            }
+        }
+
+        if (!await userManager.IsInRoleAsync(admin, "Admin"))
+        {
+            var roleResult = await userManager.AddToRoleAsync(admin, "Admin");
+
+            if (!roleResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Could not assign Admin role: " +
+                    string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+            }
+        }
+    }
+    else
+    {
+        logger.LogWarning(
+            "Bootstrap admin was not seeded because BootstrapAdmin:Email or BootstrapAdmin:Password is missing.");
+    }
+
+    // Optional dedicated test Parent account. Configure credentials through User Secrets.
+    var parentEmail = configuration["BootstrapParent:Email"];
+    var parentPassword = configuration["BootstrapParent:Password"];
+
+    if (!string.IsNullOrWhiteSpace(parentEmail) &&
+        !string.IsNullOrWhiteSpace(parentPassword))
+    {
+        var parent = await userManager.FindByEmailAsync(parentEmail);
+
+        if (parent is null)
+        {
+            parent = new AppUser
+            {
+                UserName = parentEmail,
+                Email = parentEmail,
+                EmailConfirmed = true,
+                FirstName = configuration["BootstrapParent:FirstName"] ?? "Test",
+                LastName = configuration["BootstrapParent:LastName"] ?? "Parent",
+                CreatedAtUtc = DateTime.UtcNow
+            };
+
+            var createResult = await userManager.CreateAsync(parent, parentPassword);
+
+            if (!createResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Could not create bootstrap parent: " +
+                    string.Join("; ", createResult.Errors.Select(e => e.Description)));
+            }
+        }
+
+        if (!await userManager.IsInRoleAsync(parent, "Parent"))
+        {
+            var roleResult = await userManager.AddToRoleAsync(parent, "Parent");
+
+            if (!roleResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    "Could not assign Parent role: " +
+                    string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+            }
+        }
+
+        logger.LogInformation(
+            "Bootstrap Parent account is ready for {ParentEmail}.", parentEmail);
+    }
+    else
+    {
+        logger.LogInformation(
+            "No Bootstrap Parent account configured; only the Parent role was ensured.");
     }
 }

@@ -1,7 +1,8 @@
-﻿import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import AssessmentManagement from "./components/AssessmentManagement";
 import StudentAnalytics from "./components/StudentAnalytics";
 import FeeManagement from "./components/FeeManagement";
+import ParentPortal from "./components/ParentPortal";
 import "./admin-navigation.css";
 
 const API_BASE = "http://localhost:5080";
@@ -709,6 +710,10 @@ export default function App() {
     setSelectedInstituteId("");
     setMessage("");
     setError("");
+  }
+
+  if (token && user && user.roles.some((role) => ["Parent", "ParentUser", "ParentPortal"].includes(role))) {
+    return <ParentPortal token={token} user={user} onSignOut={logout} apiBase={API_BASE} />;
   }
 
   if (token && user) {
@@ -1560,7 +1565,7 @@ export default function App() {
           <div className="eyebrow">WELCOME BACK</div>
           <h2>Sign in to your institute</h2>
           <p className="form-description">
-            Use the administrator credentials configured in .NET User Secrets.
+            Use your institute administrator or activated parent account.
           </p>
           <label htmlFor="email">Email address</label>
           <input

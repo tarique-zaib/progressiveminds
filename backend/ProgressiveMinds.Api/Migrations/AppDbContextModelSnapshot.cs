@@ -676,6 +676,44 @@ namespace ProgressiveMinds.Api.Migrations
                     b.ToTable("OutboxMessages");
                 });
 
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.ParentStudentLink", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("InstituteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("LinkedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("LinkedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ParentUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("StudentId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LinkedByUserId");
+
+                    b.HasIndex("StudentId");
+
+                    b.HasIndex("ParentUserId", "StudentId")
+                        .IsUnique();
+
+                    b.HasIndex("InstituteId", "ParentUserId", "IsActive");
+
+                    b.ToTable("ParentStudentLinks");
+                });
+
             modelBuilder.Entity("ProgressiveMinds.Api.Models.Student", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1022,6 +1060,33 @@ namespace ProgressiveMinds.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Institute");
+                });
+
+            modelBuilder.Entity("ProgressiveMinds.Api.Models.ParentStudentLink", b =>
+                {
+                    b.HasOne("ProgressiveMinds.Api.Models.Institute", null)
+                        .WithMany()
+                        .HasForeignKey("InstituteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("LinkedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.AppUser", null)
+                        .WithMany()
+                        .HasForeignKey("ParentUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ProgressiveMinds.Api.Models.Student", null)
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("ProgressiveMinds.Api.Models.Student", b =>
