@@ -87,7 +87,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("Frontend", policy => policy
         .WithOrigins(
             "http://localhost:5173",
-            "https://progressiveminds.vercel.app")
+            "https://progressiveminds.vercel.app",
+            "https://progressiveminds-gnm1k58f5-draft-lex.vercel.app")
         .AllowAnyHeader()
         .AllowAnyMethod());
 });
